@@ -16,7 +16,9 @@ public class Blob {
     public int getY() { return y; }
     public void setY(int y) { this.y = y; }
     public Color getColor() { return BLOB_COLOR; }
+    public void setColor(Color c) { BLOB_COLOR = c; }
     public boolean getHasEaten() { return hasEaten; }
+    public void setHasEaten(boolean v) { hasEaten = v; }
 
     public Blob() {
         this.x = 0;
@@ -28,6 +30,13 @@ public class Blob {
         this.x = x;
         this.y = y;
         this.BLOB_COLOR = c;
+    }
+
+    public Blob(Blob b) {
+        this.x = b.getX();
+        this.y = b.getY();
+        this.hasEaten = b.getHasEaten();
+        this.BLOB_COLOR = b.getColor();
     }
 
     private Color getPositionColor(Environment env, int x, int y) {

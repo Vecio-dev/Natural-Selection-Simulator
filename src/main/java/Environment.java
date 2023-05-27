@@ -1,23 +1,21 @@
 import java.util.LinkedList;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
 
 public class Environment extends GridPane {
     public static int GRID_SIZE = 50;
-    public static int SQUARE_SIZE = 10;
+    public static int SQUARE_SIZE = 12;
     
     public int DAYS = 100;
+    public int MAX_STEPS = 100;
     public int STEPS = 100;
 
     public int BLOBS = 25;
-    public int FOOD = 25;
+    public int FOOD = 50;
 
     private LinkedList<Blob> blobs;
 
@@ -33,8 +31,12 @@ public class Environment extends GridPane {
         createEnvironment();
     }
 
-    public void setGridSize(int size) { GRID_SIZE = size; }
-    public void setSquareSize(int size) { SQUARE_SIZE = size; }
+    enum Position {
+        TOP,
+        RIGHT,
+        BOTTOM,
+        LEFT
+    }
 
     private void createEnvironment() {
         this.getChildren().clear(); // Clear existing content
@@ -54,10 +56,31 @@ public class Environment extends GridPane {
         generateFood();
     }
 
-    private void generateBlob() {
-        int sideLength = GRID_SIZE - 2; // Length of each side (excluding corners)
-        int blobsPerSide = BLOBS / 4; // Number of blobs per side
-        int remainingBlobs = BLOBS % 4; // Blobs remaining after distributing equally
+    private void regenerateEnvironment() {
+        // Clear the grid
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                Rectangle square = (Rectangle)getNode(i, j);
+                square.setFill(Color.WHITE);
+            }
+        }
+    
+        // Create children blobs
+        LinkedList<Blob> children = new LinkedList<>();
+        for (Blob b : blobs) { 
+            b.setHasEaten(false);
+            Blob child = new Blob(b);
+            children.add(child);
+        }
+    
+        // Add children to the blobs list
+        blobs.addAll(children);
+        BLOBS = blobs.size();
+    
+        // Calculate blobs per side
+        int sideLength = GRID_SIZE - 2;
+        int blobsPerSide = BLOBS / 4;
+        int remainingBlobs = BLOBS % 4;
     
         int topBlobs = blobsPerSide;
         int rightBlobs = blobsPerSide;
@@ -66,50 +89,99 @@ public class Environment extends GridPane {
     
         // Distribute remaining blobs evenly
         if (remainingBlobs > 0) {
-            topBlobs += remainingBlobs;
-            remainingBlobs = Math.max(remainingBlobs - sideLength, 0);
-            rightBlobs += remainingBlobs;
-            remainingBlobs = Math.max(remainingBlobs - sideLength, 0);
-            bottomBlobs += remainingBlobs;
-            remainingBlobs = Math.max(remainingBlobs - sideLength, 0);
-            leftBlobs += remainingBlobs;
+            topBlobs += 1;
+            remainingBlobs--;
+            if (remainingBlobs > 0) {
+                rightBlobs += 1;
+                remainingBlobs--;
+            }
+            if (remainingBlobs > 0) {
+                bottomBlobs += 1;
+                remainingBlobs--;
+            }
+            if (remainingBlobs > 0) {
+                leftBlobs += 1;
+            }
         }
     
-        // Generate blobs on top side
-        for (int i = 0; i < topBlobs; i++) {
-            double position = (double) (i + 1) / (topBlobs + 1);
-            int x = (int) Math.round(position * sideLength) + 1;
-            int y = 0;
-            Blob b = new Blob(x, y, Color.RED);
-            addBlob(b);
-        }
+        // Generate blobs on all sides
+        int blobIndex = 0;
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, topBlobs, Position.TOP, sideLength);
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, rightBlobs, Position.RIGHT, sideLength);
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, bottomBlobs, Position.BOTTOM, sideLength);
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, leftBlobs, Position.LEFT, sideLength);
     
-        // Generate blobs on right side
-        for (int i = 0; i < rightBlobs; i++) {
-            double position = (double) (i + 1) / (rightBlobs + 1);
-            int x = GRID_SIZE - 1;
-            int y = (int) Math.round(position * sideLength) + 1;
-            Blob b = new Blob(x, y, Color.RED);
-            addBlob(b);
-        }
+        // Generate food
+        generateFood();
+    }
     
-        // Generate blobs on bottom side
-        for (int i = 0; i < bottomBlobs; i++) {
-            double position = (double) (i + 1) / (bottomBlobs + 1);
-            int x = GRID_SIZE - 1 - (int) Math.round(position * sideLength);
-            int y = GRID_SIZE - 1;
-            Blob b = new Blob(x, y, Color.RED);
-            addBlob(b);
-        }
     
-        // Generate blobs on left side
-        for (int i = 0; i < leftBlobs; i++) {
-            double position = (double) (i + 1) / (leftBlobs + 1);
-            int x = 0;
-            int y = GRID_SIZE - 1 - (int) Math.round(position * sideLength);
-            Blob b = new Blob(x, y, Color.RED);
-            addBlob(b);
+    private void generateBlob() {
+        int sideLength = GRID_SIZE - 2;
+        int blobsPerSide = BLOBS / 4;
+        int remainingBlobs = BLOBS % 4;
+        
+        int topBlobs = blobsPerSide;
+        int rightBlobs = blobsPerSide;
+        int bottomBlobs = blobsPerSide;
+        int leftBlobs = blobsPerSide;
+        
+        // Distribute remaining blobs evenly
+        if (remainingBlobs > 0) {
+            topBlobs += 1;
+            remainingBlobs--;
+            if (remainingBlobs > 0) {
+                rightBlobs += 1;
+                remainingBlobs--;
+            }
+            if (remainingBlobs > 0) {
+                bottomBlobs += 1;
+                remainingBlobs--;
+            }
+            if (remainingBlobs > 0) {
+                leftBlobs += 1;
+            }
         }
+        
+        // Generate initial blobs and add them to the list
+        for (int i = 0; i < BLOBS; i++) {
+            blobs.add(new Blob(0, 0, Color.RED));
+        }
+        
+        // Position blobs on all sides
+        int blobIndex = 0;
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, topBlobs, Position.TOP, sideLength);
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, rightBlobs, Position.RIGHT, sideLength);
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, bottomBlobs, Position.BOTTOM, sideLength);
+        blobIndex = generateBlobsOnSide(blobs, blobIndex, leftBlobs, Position.LEFT, sideLength);
+    }    
+
+    private int generateBlobsOnSide(LinkedList<Blob> blobs, int startIndex, int numberOfBlobs, Position position, int sideLength) {
+        for (int i = 0; i < numberOfBlobs; i++) {
+            double pos = (double) (i + 1) / (numberOfBlobs + 1);
+            Blob b = blobs.get(startIndex + i);
+    
+            switch (position) {
+                case TOP:
+                    b.setX((int) Math.round(pos * sideLength) + 1);
+                    b.setY(0);
+                    break;
+                case RIGHT:
+                    b.setX(GRID_SIZE - 1);
+                    b.setY((int) Math.round(pos * sideLength) + 1);
+                    break;
+                case BOTTOM:
+                    b.setX(GRID_SIZE - 1 - (int) Math.round(pos * sideLength));
+                    b.setY(GRID_SIZE - 1);
+                    break;
+                case LEFT:
+                    b.setX(0);
+                    b.setY(GRID_SIZE - 1 - (int) Math.round(pos * sideLength));
+                    break;
+            }
+            ((Rectangle)getNode(b.getX(), b.getY())).setFill(b.getColor());
+        }
+        return startIndex + numberOfBlobs;
     }
     
     private void generateFood() {
@@ -132,23 +204,15 @@ public class Environment extends GridPane {
     }
 
     public void nextStep() {
-        for (int i = 0; i < STEPS; i++) {
-            for (Blob blob : blobs) {
-                blob.randomStep(this);
-            }
-            //System.out.println("Step " + STEPS + " taken.");
+        for (Blob blob : blobs) {
+            blob.randomStep(this);
         }
-
-        System.out.println("Day finished");
-        blobs.removeIf(b -> !b.getHasEaten());
-        BLOBS = blobs.size() * 2;
-        createEnvironment();
     }
-
+    
     public void nextDay() {
-        if (DAYS > 0) {
-            nextStep();
-            DAYS--;
-        }
+        blobs.removeIf(b -> !b.getHasEaten());
+        STEPS = MAX_STEPS;
+
+        regenerateEnvironment();
     }
 }
