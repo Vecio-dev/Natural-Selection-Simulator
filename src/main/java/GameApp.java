@@ -1,29 +1,34 @@
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
 import javafx.stage.Stage;
-import javafx.scene.paint.Color;
 
 public class GameApp extends Application {
-    private final Duration delay = Duration.millis(1000);
+    private final Duration delay = Duration.millis(100);
 
     @Override
     public void start(Stage primaryStage) {
-        Environment env = new Environment(20, 25);
-        Blob blob = new Blob();
-        env.addBlob(blob);
-        Blob blob2 = new Blob(Environment.GRID_SIZE - 1, Environment.GRID_SIZE - 1, Color.BLUE);
-        env.addBlob(blob2);
-
-        Scene scene = new Scene(env, 600, 600);
+        BorderPane root = new BorderPane();
+        Environment env = new Environment();
+        Button startSimulationButton = new Button("Start");
         
+        // Set the size and alignment of the button
+        startSimulationButton.setAlignment(Pos.CENTER);
+        startSimulationButton.setOnAction(event -> startSimulation(env));
+
+        root.setCenter(env);
+        root.setTop(startSimulationButton);
+
+        Scene scene = new Scene(root, 600, 600);
+
         primaryStage.setTitle("Simulator");
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        startSimulation(env);
     }
     
     private void startSimulation(Environment env) {
