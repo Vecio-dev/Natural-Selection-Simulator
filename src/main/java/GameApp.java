@@ -76,7 +76,27 @@ public class GameApp extends Application {
         TextField foodNumberTextField = new TextField("0");
         HBox foodBox = new HBox(foodNumberLabel, foodNumberTextField);
 
-        VBox environmentSettings = new VBox(blobsBox, foodBox);
+        Label defaultEnergyLabel = new Label("Default energy: ");
+        TextField defaultEnergyTextField = new TextField("0");
+        HBox energyBox = new HBox(defaultEnergyLabel, defaultEnergyTextField);
+
+        Label daysLabel = new Label("Days N: ");
+        TextField daysTextField = new TextField("0");
+        HBox daysBox = new HBox(daysLabel, daysTextField);
+
+        Label gridSizeLabel = new Label("Grid Size: ");
+        TextField gridSizeTextField = new TextField("0");
+        HBox gridSizeBox = new HBox(gridSizeLabel, gridSizeTextField);
+
+        Label squareSizeLabel = new Label("Square Size: ");
+        TextField squareSizeTextField = new TextField("0");
+        HBox squareSizeBox = new HBox(squareSizeLabel, squareSizeTextField);
+
+        Label stepsNumberLabel = new Label("Steps N: ");
+        TextField stepNumberTextField = new TextField("0");
+        HBox stepNumberBox = new HBox(stepsNumberLabel, stepNumberTextField);
+
+        VBox environmentSettings = new VBox(gridSizeBox, squareSizeBox, blobsBox, foodBox, daysBox, stepNumberBox);
         TitledPane environmentDropDown = new TitledPane();
         environmentDropDown.setText("Environment");
         environmentDropDown.setContent(environmentSettings);
@@ -86,7 +106,8 @@ public class GameApp extends Application {
         CheckBox speedCheckbox = new CheckBox();
         HBox speedBox = new HBox(speedLabel, speedCheckbox);
 
-        VBox blobSettings = new VBox(traitsLabel, speedBox);
+        VBox blobSettings = new VBox(traitsLabel, speedBox, energyBox);
+        blobSettings.setSpacing(5);
         TitledPane blobsDropDown = new TitledPane();
         blobsDropDown.setText("Blobs");
         blobsDropDown.setContent(blobSettings);
