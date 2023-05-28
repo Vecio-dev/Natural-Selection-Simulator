@@ -111,7 +111,7 @@ public class Blob {
     }
 
     private boolean validPosition(Environment env, int newX, int newY) {
-        if (newX >= 0 && newX < Environment.GRID_SIZE && newY >= 0 && newY < Environment.GRID_SIZE) return true;
+        if (newX >= 0 && newX < env.GRID_SIZE && newY >= 0 && newY < env.GRID_SIZE) return true;
         else return false;
     }
 

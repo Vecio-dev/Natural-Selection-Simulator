@@ -8,8 +8,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Environment extends GridPane {
-    public static int GRID_SIZE = 50;
-    public static int SQUARE_SIZE = 12;
+    public int GRID_SIZE = 50;
+    public int SQUARE_SIZE = 12;
     
     public int DAYS = 0;
     public int MAX_STEPS = 100;
@@ -24,29 +24,24 @@ public class Environment extends GridPane {
     public int foodStep = 0;
     public int minFood;
 
+    public boolean foodStepEnabled;
     public boolean speedEnabled;
-    public boolean sizeEnabled = true;
+    public boolean sizeEnabled;
 
     private LinkedList<Blob> blobs;
     private LinkedList<Blob> blobsToRemove;
 
-    public Environment(int blobsNumber, int foodNumber, boolean speedEnabled, int defaultEnergy, int days, int gridSize, int squareSize, int stepNumber) {
+    public Environment(int blobsNumber, int foodNumber, boolean speedEnabled, int defaultEnergy, int gridSize, int squareSize, int stepNumber, int defaultSpeed, float defaultSize, boolean sizeEnabled) {
         BLOBS = blobsNumber;
         FOOD = foodNumber;
         this.speedEnabled = speedEnabled;
+        this.sizeEnabled = sizeEnabled;
         DEFAULT_ENERGY = defaultEnergy;
-        DAYS = days;
+        DEFAULT_SPEED = defaultSpeed;
+        DEFAULT_SIZE = defaultSize;
         GRID_SIZE = gridSize;
         SQUARE_SIZE = squareSize;
         MAX_STEPS = stepNumber;
-        blobs = new LinkedList<>();
-        blobsToRemove = new LinkedList<>();
-        createEnvironment();
-    }
-
-    public Environment(int gridSize, int squareSize) {
-        GRID_SIZE = gridSize;
-        SQUARE_SIZE = squareSize;
         blobs = new LinkedList<>();
         blobsToRemove = new LinkedList<>();
         createEnvironment();
@@ -79,6 +74,12 @@ public class Environment extends GridPane {
         avg /= BLOBS;
         if (Double.isNaN(avg)) return 0;
         return avg;
+    }
+
+    public void updateEnvironment(boolean foodStepEnabled, int foodStep, int minFood) {
+        this.foodStepEnabled = foodStepEnabled;
+        this.foodStep = foodStep;
+        this.minFood = minFood;
     }
 
     public Blob getBlob(int x, int y) {
@@ -258,7 +259,7 @@ public class Environment extends GridPane {
     
     private void generateFood() {
         for (int i = 0; i < FOOD; i++) {
-            Food f = new Food();
+            Food f = new Food(this);
             ((Rectangle)getNode(f.getX(), f.getY())).setFill(f.getColor());
         }
     }
@@ -293,8 +294,10 @@ public class Environment extends GridPane {
         STEPS = MAX_STEPS;
         DAYS++;
 
-        FOOD -= foodStep;
-        if (FOOD < minFood) FOOD = minFood;
+        if (foodStepEnabled) {
+            FOOD -= foodStep;
+            if (FOOD < minFood) FOOD = minFood;
+        }
 
         regenerateEnvironment();
     }

@@ -12,10 +12,10 @@ public class Food {
     public int getX() { return x; }
     public int getY() { return y; }
 
-    public Food() {
+    public Food(Environment env) {
         Random random = new Random();
 
-        this.x = random.nextInt(Environment.GRID_SIZE - 2) + 1;
-        this.y = random.nextInt(Environment.GRID_SIZE - 2) + 1;
+        this.x = random.nextInt(env.GRID_SIZE - 2) + 1;
+        this.y = random.nextInt(env.GRID_SIZE - 2) + 1;
     }
 }
