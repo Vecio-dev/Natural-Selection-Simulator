@@ -9,7 +9,10 @@ public class Blob {
     private int x;
     private int y;
 
-    private boolean hasEaten = false;
+    private int hasEaten = 0;
+
+    private float energy;
+    private int speed;
 
     public int getX() { return x; }
     public void setX(int x) { this.x = x; }
@@ -17,19 +20,31 @@ public class Blob {
     public void setY(int y) { this.y = y; }
     public Color getColor() { return BLOB_COLOR; }
     public void setColor(Color c) { BLOB_COLOR = c; }
-    public boolean getHasEaten() { return hasEaten; }
-    public void setHasEaten(boolean v) { hasEaten = v; }
+    public int getHasEaten() { return hasEaten; }
+    public void setHasEaten(int v) { hasEaten = v; }
+    public float getEnergy() { return energy; }
+    public void setEnergy(float energy) { this.energy = energy; }
+    public int getSpeed() { return speed; }
+    public void setSpeed(int speed) {
+        if (speed <= 0) speed = 1; 
+        this.speed = speed;
+        this.BLOB_COLOR = generateColor();
+    }
 
     public Blob() {
         this.x = 0;
         this.y = 0;
-        this.BLOB_COLOR = Color.RED;
+        this.energy = 0f;
+        this.speed = 0;
+        this.BLOB_COLOR = generateColor();
     }
 
-    public Blob(int x, int y, Color c) {
+    public Blob(int x, int y, float energy, int speed) {
         this.x = x;
         this.y = y;
-        this.BLOB_COLOR = c;
+        this.energy = energy;
+        this.speed = speed;
+        this.BLOB_COLOR = generateColor();
     }
 
     public Blob(Blob b) {
@@ -37,6 +52,14 @@ public class Blob {
         this.y = b.getY();
         this.hasEaten = b.getHasEaten();
         this.BLOB_COLOR = b.getColor();
+        this.energy = b.getEnergy();
+        this.speed = b.getSpeed();
+    }
+
+    private Color generateColor() {
+        double hue = speed * 18;
+    
+        return Color.hsb(hue, 0.9, 0.9);
     }
 
     private Color getPositionColor(Environment env, int x, int y) {
@@ -48,9 +71,11 @@ public class Blob {
         x = newX;
         y = newY;
         if (getPositionColor(env, x, y) == Food.FOOD_COLOR) {
-            hasEaten = true;
+            hasEaten++;
         }
         ((Rectangle)env.getNode(x, y)).setFill(BLOB_COLOR);
+        
+        energy -= speed;
     }
 
     private boolean validPosition(Environment env, int newX, int newY) {
@@ -59,6 +84,7 @@ public class Blob {
     }
 
     public void randomStep(Environment env) {
+        if (energy <= speed) return;
         Random random = new Random();
     
         int randomDirection = random.nextInt(3) - 1;

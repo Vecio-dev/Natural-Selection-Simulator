@@ -1,4 +1,5 @@
 import java.util.LinkedList;
+import java.util.Random;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -10,16 +11,23 @@ public class Environment extends GridPane {
     public static int GRID_SIZE = 50;
     public static int SQUARE_SIZE = 12;
     
-    public int DAYS = 100;
+    public int DAYS = 0;
     public int MAX_STEPS = 100;
     public int STEPS = 100;
 
-    public int BLOBS = 25;
-    public int FOOD = 50;
+    public int BLOBS;
+    public int FOOD;
+    public float DEFAULT_ENERGY = 100;
+    public int DEFAULT_SPEED = 1;
+
+    public boolean speedEnabled;
 
     private LinkedList<Blob> blobs;
 
-    public Environment() {
+    public Environment(int blobsNumber, int foodNumber, boolean speedEnabled) {
+        BLOBS = blobsNumber;
+        FOOD = foodNumber;
+        this.speedEnabled = speedEnabled;
         blobs = new LinkedList<>();
         createEnvironment();
     }
@@ -57,6 +65,8 @@ public class Environment extends GridPane {
     }
 
     private void regenerateEnvironment() {
+        Random random = new Random();
+        
         // Clear the grid
         for (int i = 0; i < GRID_SIZE; i++) {
             for (int j = 0; j < GRID_SIZE; j++) {
@@ -68,9 +78,17 @@ public class Environment extends GridPane {
         // Create children blobs
         LinkedList<Blob> children = new LinkedList<>();
         for (Blob b : blobs) { 
-            b.setHasEaten(false);
-            Blob child = new Blob(b);
-            children.add(child);
+            boolean canReproduce = b.getHasEaten() >= 2;
+            b.setHasEaten(0);
+            b.setEnergy(DEFAULT_ENERGY);
+
+            int randomSpeed = random.nextInt(2) * 2 - 1;
+            
+            if (canReproduce) {
+                Blob child = new Blob(b);
+                if (speedEnabled) b.setSpeed(b.getSpeed() - randomSpeed);
+                children.add(child);
+            }
         }
     
         // Add children to the blobs list
@@ -145,7 +163,7 @@ public class Environment extends GridPane {
         
         // Generate initial blobs and add them to the list
         for (int i = 0; i < BLOBS; i++) {
-            blobs.add(new Blob(0, 0, Color.RED));
+            blobs.add(new Blob(0, 0, DEFAULT_ENERGY, DEFAULT_SPEED));
         }
         
         // Position blobs on all sides
@@ -205,13 +223,21 @@ public class Environment extends GridPane {
 
     public void nextStep() {
         for (Blob blob : blobs) {
-            blob.randomStep(this);
+            if (!speedEnabled) blob.randomStep(this);
+            else {
+                for (int i = 0; i < blob.getSpeed(); i++) {
+                    blob.randomStep(this);
+                }
+            }
         }
+
+        STEPS--;
     }
     
     public void nextDay() {
-        blobs.removeIf(b -> !b.getHasEaten());
+        blobs.removeIf(b -> b.getHasEaten() < 1);
         STEPS = MAX_STEPS;
+        DAYS++;
 
         regenerateEnvironment();
     }
