@@ -46,6 +46,17 @@ public class Environment extends GridPane {
         LEFT
     }
 
+    public double getAverageSpeed() {
+        double avg = 0;
+        for (Blob b : blobs) {
+            avg += b.getSpeed();
+        }
+
+        avg /= BLOBS;
+        if (Double.isNaN(avg)) return 0;
+        return avg;
+    }
+
     private void createEnvironment() {
         this.getChildren().clear(); // Clear existing content
 
