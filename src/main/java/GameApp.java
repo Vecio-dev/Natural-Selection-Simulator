@@ -1,8 +1,12 @@
+import java.util.Map;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -30,6 +34,9 @@ public class GameApp extends Application {
 
     private LineChart<Number, Number> avgSpeedChart;
     private XYChart.Series<Number, Number> avgSpeedSeries;
+
+    private LineChart<Number, Number> avgSizeChart;
+    private XYChart.Series<Number, Number> avgSizeSeries;
 
     Label blobsNum;
     Label daysNum;
@@ -119,16 +126,17 @@ public class GameApp extends Application {
         blobsDropDown.setText("Blobs");
         blobsDropDown.setContent(blobSettings);
         
-        generateSimulationButton.setOnAction(event -> generateEnvironment(root, blobsNumberTextField, foodNumberTextField, speedCheckbox));
         VBox settingsBox = new VBox(generateSimulationButton, environmentDropDown, blobsDropDown);
         settingsBox.setSpacing(10);
+
+        centerBox.setSpacing(20);
+        centerBox.getChildren().addAll(env, settingsBox);
+
+        generateSimulationButton.setOnAction(event -> generateEnvironment(root, centerBox, settingsBox, blobsNumberTextField, foodNumberTextField, speedCheckbox));
 
         // CHARTS
         VBox graphsBox = new VBox();
         generateCharts(graphsBox);
-
-        centerBox.setSpacing(20);
-        centerBox.getChildren().addAll(env, settingsBox);
 
         // WINDOW SETTINGS
         root.setTop(statsBox);
@@ -179,16 +187,37 @@ public class GameApp extends Application {
     
         HBox firstLine = new HBox();
         firstLine.getChildren().addAll(blobsChart, avgSpeedChart);
-        graphsBox.getChildren().add(firstLine);
+
+        // Average Size Chart
+        final NumberAxis sizeXAxis = new NumberAxis();
+        final NumberAxis sizeYAxis = new NumberAxis();
+        sizeXAxis.setLabel("Days");
+        sizeXAxis.setTickUnit(1);
+        sizeYAxis.setLabel("Avg. Size");
+    
+        avgSizeChart = new LineChart<>(sizeXAxis, sizeYAxis);
+        avgSizeChart.setCreateSymbols(false);
+        avgSizeChart.setLegendVisible(false);
+        avgSizeSeries = new XYChart.Series<>();
+        avgSizeSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSize()));
+        avgSizeChart.getData().add(avgSizeSeries);
+
+        HBox secondLine = new HBox();
+        secondLine.getChildren().addAll(avgSizeChart);
+
+        graphsBox.getChildren().addAll(firstLine, secondLine);
     }    
 
-    private void generateEnvironment(BorderPane root, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox) {
+    private void generateEnvironment(BorderPane root, HBox centerbox, VBox settingsBox, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox) {
         int blobsNumber = Integer.parseInt(blobsNumberTextField.getText());
         int foodNumber = Integer.parseInt(foodNumberTextField.getText());
         boolean speedEnabled = speedCheckbox.isSelected();
 
         env = new Environment(blobsNumber, foodNumber, speedEnabled);
-        root.setLeft(env);
+
+        centerbox.getChildren().clear();
+        centerbox.getChildren().addAll(env, settingsBox);
+        root.setLeft(centerbox);
         updateStats();
 
         blobSeries.getData().clear();
@@ -196,6 +225,9 @@ public class GameApp extends Application {
 
         avgSpeedSeries.getData().clear();
         avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
+
+        avgSizeSeries.getData().clear();
+        avgSizeSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSize()));
     }
 
     private void skip(TextField skipNumTextField) {
@@ -216,6 +248,7 @@ public class GameApp extends Application {
                 blobSeries.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
                 avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
                 updateStats();
+                avgSizeSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSize()));
             }
         }
     }
@@ -234,7 +267,7 @@ public class GameApp extends Application {
 
                 blobSeries.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
                 avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
-
+                avgSizeSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSize()));
                 //timeline.pause();
             }
         });

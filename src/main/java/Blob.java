@@ -4,15 +4,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Blob {
-    private Color BLOB_COLOR; 
+    private Color BLOB_COLOR;
 
     private int x;
     private int y;
 
     private int hasEaten = 0;
 
+    private double energyCost;
+
     private float energy;
     private int speed;
+    private float size;
 
     public int getX() { return x; }
     public void setX(int x) { this.x = x; }
@@ -28,22 +31,36 @@ public class Blob {
     public void setSpeed(int speed) {
         if (speed <= 0) speed = 1; 
         this.speed = speed;
+        this.energyCost = calculateEnergyCost();
         this.BLOB_COLOR = generateColor();
     }
+    public float getSize() { return size; }
+    public void setSize(float size) { 
+        if (size <= 0) size = 0.1f;
+        this.size = size;
+        this.energyCost = calculateEnergyCost();
+        this.BLOB_COLOR = generateColor();
+    }
+    public double getEnergyCost() { return energyCost; }
+    public void setEnergyCost(float energyCost) { this.energyCost = energyCost; }
 
     public Blob() {
         this.x = 0;
         this.y = 0;
         this.energy = 0f;
         this.speed = 0;
+        this.size = 1;
+        this.energyCost = calculateEnergyCost();
         this.BLOB_COLOR = generateColor();
     }
 
-    public Blob(int x, int y, float energy, int speed) {
+    public Blob(int x, int y, float energy, int speed, float size) {
         this.x = x;
         this.y = y;
         this.energy = energy;
         this.speed = speed;
+        this.size = size;
+        this.energyCost = calculateEnergyCost();
         this.BLOB_COLOR = generateColor();
     }
 
@@ -54,10 +71,16 @@ public class Blob {
         this.BLOB_COLOR = b.getColor();
         this.energy = b.getEnergy();
         this.speed = b.getSpeed();
+        this.size = b.getSize();
+        this.energyCost = b.getEnergyCost();
+    }
+
+    private double calculateEnergyCost() {
+        return Math.pow(size, 3) * Math.pow(speed, 2);
     }
 
     private Color generateColor() {
-        double hue = speed * 18;
+        double hue = ((speed + size) * 18) % 360;
     
         return Color.hsb(hue, 0.9, 0.9);
     }
@@ -68,14 +91,23 @@ public class Blob {
 
     public void move(Environment env, int newX, int newY) {
         ((Rectangle)env.getNode(x, y)).setFill(Color.WHITE);
-        x = newX;
-        y = newY;
-        if (getPositionColor(env, x, y) == Food.FOOD_COLOR) {
+        Color positionColor = getPositionColor(env, newX, newY);
+        if (positionColor != Food.FOOD_COLOR && positionColor != Color.WHITE) {
+            Blob enemy = env.getBlob(newX, newY);
+            
+            if ((size * 100) / enemy.getSize() >= 120) {
+                env.removeBlob(enemy);
+                hasEaten++;
+            }
+        } else if (positionColor == Food.FOOD_COLOR) {
             hasEaten++;
         }
+
+        x = newX;
+        y = newY;
         ((Rectangle)env.getNode(x, y)).setFill(BLOB_COLOR);
         
-        energy -= speed;
+        energy -= energyCost;
     }
 
     private boolean validPosition(Environment env, int newX, int newY) {
@@ -84,7 +116,7 @@ public class Blob {
     }
 
     public void randomStep(Environment env) {
-        if (energy <= speed) return;
+        if (energy <= energyCost) return;
         Random random = new Random();
     
         int randomDirection = random.nextInt(3) - 1;

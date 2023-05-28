@@ -17,18 +17,25 @@ public class Environment extends GridPane {
 
     public int BLOBS;
     public int FOOD;
-    public float DEFAULT_ENERGY = 100;
+    public float DEFAULT_ENERGY = 1000;
     public int DEFAULT_SPEED = 1;
+    public float DEFAULT_SIZE = 1;
+
+    public int foodStep = 0;
+    public int minFood;
 
     public boolean speedEnabled;
+    public boolean sizeEnabled = true;
 
     private LinkedList<Blob> blobs;
+    private LinkedList<Blob> blobsToRemove;
 
     public Environment(int blobsNumber, int foodNumber, boolean speedEnabled) {
         BLOBS = blobsNumber;
         FOOD = foodNumber;
         this.speedEnabled = speedEnabled;
         blobs = new LinkedList<>();
+        blobsToRemove = new LinkedList<>();
         createEnvironment();
     }
 
@@ -36,6 +43,7 @@ public class Environment extends GridPane {
         GRID_SIZE = gridSize;
         SQUARE_SIZE = squareSize;
         blobs = new LinkedList<>();
+        blobsToRemove = new LinkedList<>();
         createEnvironment();
     }
 
@@ -55,6 +63,28 @@ public class Environment extends GridPane {
         avg /= BLOBS;
         if (Double.isNaN(avg)) return 0;
         return avg;
+    }
+
+    public double getAverageSize() {
+        double avg = 0;
+        for (Blob b : blobs) {
+            avg += b.getSize();
+        }
+
+        avg /= BLOBS;
+        if (Double.isNaN(avg)) return 0;
+        return avg;
+    }
+
+    public Blob getBlob(int x, int y) {
+        for (Blob b : blobs) {
+            if (b.getX() == x && b.getY() == y) return b;
+        }
+        return null;
+    }
+
+    public void removeBlob(Blob b) {
+        blobsToRemove.add(b);
     }
 
     private void createEnvironment() {
@@ -85,6 +115,11 @@ public class Environment extends GridPane {
                 square.setFill(Color.WHITE);
             }
         }
+
+        // Remove Eaten Blobs
+        for (Blob b : blobsToRemove) {
+            blobs.remove(b);
+        }
     
         // Create children blobs
         LinkedList<Blob> children = new LinkedList<>();
@@ -94,10 +129,12 @@ public class Environment extends GridPane {
             b.setEnergy(DEFAULT_ENERGY);
 
             int randomSpeed = random.nextInt(2) * 2 - 1;
-            
+            float randomSize = (random.nextBoolean() ? 0.1f : -0.1f);
+
             if (canReproduce) {
                 Blob child = new Blob(b);
                 if (speedEnabled) b.setSpeed(b.getSpeed() - randomSpeed);
+                if (sizeEnabled) b.setSize(b.getSize() - randomSize);
                 children.add(child);
             }
         }
@@ -174,7 +211,8 @@ public class Environment extends GridPane {
         
         // Generate initial blobs and add them to the list
         for (int i = 0; i < BLOBS; i++) {
-            blobs.add(new Blob(0, 0, DEFAULT_ENERGY, DEFAULT_SPEED));
+            Blob b = new Blob(0, 0, DEFAULT_ENERGY, DEFAULT_SPEED, DEFAULT_SIZE);
+            blobs.add(b);
         }
         
         // Position blobs on all sides
@@ -249,6 +287,9 @@ public class Environment extends GridPane {
         blobs.removeIf(b -> b.getHasEaten() < 1);
         STEPS = MAX_STEPS;
         DAYS++;
+
+        FOOD -= foodStep;
+        if (FOOD < minFood) FOOD = minFood;
 
         regenerateEnvironment();
     }
