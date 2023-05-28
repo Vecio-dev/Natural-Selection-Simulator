@@ -25,8 +25,11 @@ public class GameApp extends Application {
 
     private boolean simulationPlaying = false;
 
-    private LineChart<Number,Number> lineChart;
-    private XYChart.Series<Number, Number> series;
+    private LineChart<Number, Number> blobsChart;
+    private XYChart.Series<Number, Number> blobSeries;
+
+    private LineChart<Number, Number> avgSpeedChart;
+    private XYChart.Series<Number, Number> avgSpeedSeries;
 
     Label blobsNum;
     Label daysNum;
@@ -34,7 +37,9 @@ public class GameApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         ScrollPane scrollPane = new ScrollPane();
+        VBox mainLayout = new VBox();
         BorderPane root = new BorderPane();
+        HBox centerBox = new HBox();
         env = new Environment(0, 0, false);
 
         // SIMULATION BUTTONS
@@ -60,18 +65,19 @@ public class GameApp extends Application {
         daysNum = new Label("Days: " + env.DAYS);
 
         HBox simulationButtonsBox = new HBox(startSimulationButton, resumeSimulationButton, pauseSimulationButton, skipBox);
+        simulationButtonsBox.setAlignment(Pos.CENTER);
         simulationButtonsBox.setSpacing(10);
         VBox statsBox = new VBox(simulationButtonsBox, blobsNum, daysNum);
         statsBox.setAlignment(Pos.CENTER);
-
+        
         // SETTINGS
         Button generateSimulationButton = new Button("Generate");
         generateSimulationButton.setAlignment(Pos.CENTER);
-
+        
         Label blobsNumberLabel = new Label("Blobs N: ");
         TextField blobsNumberTextField = new TextField("0");
         HBox blobsBox = new HBox(blobsNumberLabel, blobsNumberTextField);
-
+        
         Label foodNumberLabel = new Label("Food N: ");
         TextField foodNumberTextField = new TextField("0");
         HBox foodBox = new HBox(foodNumberLabel, foodNumberTextField);
@@ -97,10 +103,11 @@ public class GameApp extends Application {
         HBox stepNumberBox = new HBox(stepsNumberLabel, stepNumberTextField);
 
         VBox environmentSettings = new VBox(gridSizeBox, squareSizeBox, blobsBox, foodBox, daysBox, stepNumberBox);
+        
         TitledPane environmentDropDown = new TitledPane();
         environmentDropDown.setText("Environment");
         environmentDropDown.setContent(environmentSettings);
-
+        
         Label traitsLabel = new Label("Traits:");
         Label speedLabel = new Label("Speed: ");
         CheckBox speedCheckbox = new CheckBox();
@@ -111,38 +118,69 @@ public class GameApp extends Application {
         TitledPane blobsDropDown = new TitledPane();
         blobsDropDown.setText("Blobs");
         blobsDropDown.setContent(blobSettings);
-
+        
         generateSimulationButton.setOnAction(event -> generateEnvironment(root, blobsNumberTextField, foodNumberTextField, speedCheckbox));
         VBox settingsBox = new VBox(generateSimulationButton, environmentDropDown, blobsDropDown);
         settingsBox.setSpacing(10);
 
         // CHARTS
-        final NumberAxis xAxis = new NumberAxis();
-        final NumberAxis yAxis = new NumberAxis();
-        xAxis.setLabel("Days");
-        yAxis.setLabel("Blobs");
+        VBox graphsBox = new VBox();
+        generateCharts(graphsBox);
 
-        lineChart = new LineChart<Number,Number>(xAxis,yAxis);
-        lineChart.setLegendVisible(false);
-        series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<Number, Number>(env.DAYS, env.BLOBS));
-        lineChart.getData().add(0, series);
-
-        HBox graphsBox = new HBox(lineChart);
+        centerBox.setSpacing(20);
+        centerBox.getChildren().addAll(env, settingsBox);
 
         // WINDOW SETTINGS
         root.setTop(statsBox);
-        root.setLeft(env);
-        root.setRight(settingsBox);
-        root.setBottom(graphsBox);
+        root.setLeft(centerBox);
+        //root.setRight(settingsBox);
+        //root.setBottom(graphsBox);
 
-        scrollPane.setContent(root);
-        Scene scene = new Scene(scrollPane, 1000, 800);
+        mainLayout.getChildren().addAll(root, graphsBox);
+
+        scrollPane.setContent(mainLayout);
+        Scene scene = new Scene(scrollPane, 1200, 800);
 
         primaryStage.setTitle("Simulator");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+    private void generateCharts(VBox graphsBox) {
+        graphsBox.getChildren().clear();
+    
+        // Blobs Chart
+        final NumberAxis blobsXAxis = new NumberAxis();
+        final NumberAxis blobsYAxis = new NumberAxis();
+        blobsXAxis.setLabel("Days");
+        blobsXAxis.setTickUnit(1);
+        blobsYAxis.setLabel("Blobs");
+    
+        blobsChart = new LineChart<>(blobsXAxis, blobsYAxis);
+        blobsChart.setCreateSymbols(false);
+        blobsChart.setLegendVisible(false);
+        blobSeries = new XYChart.Series<>();
+        blobSeries.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
+        blobsChart.getData().add(blobSeries);
+    
+        // Average Speed Chart
+        final NumberAxis speedXAxis = new NumberAxis();
+        final NumberAxis speedYAxis = new NumberAxis();
+        speedXAxis.setLabel("Days");
+        speedXAxis.setTickUnit(1);
+        speedYAxis.setLabel("Avg. Speed");
+    
+        avgSpeedChart = new LineChart<>(speedXAxis, speedYAxis);
+        avgSpeedChart.setCreateSymbols(false);
+        avgSpeedChart.setLegendVisible(false);
+        avgSpeedSeries = new XYChart.Series<>();
+        avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
+        avgSpeedChart.getData().add(avgSpeedSeries);
+    
+        HBox firstLine = new HBox();
+        firstLine.getChildren().addAll(blobsChart, avgSpeedChart);
+        graphsBox.getChildren().add(firstLine);
+    }    
 
     private void generateEnvironment(BorderPane root, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox) {
         int blobsNumber = Integer.parseInt(blobsNumberTextField.getText());
@@ -152,8 +190,12 @@ public class GameApp extends Application {
         env = new Environment(blobsNumber, foodNumber, speedEnabled);
         root.setLeft(env);
         updateStats();
-        series.getData().clear();
-        series.getData().add(new XYChart.Data<Number, Number>(env.DAYS, env.BLOBS));
+
+        blobSeries.getData().clear();
+        blobSeries.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
+
+        avgSpeedSeries.getData().clear();
+        avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
     }
 
     private void skip(TextField skipNumTextField) {
@@ -171,7 +213,8 @@ public class GameApp extends Application {
     
             if (env.STEPS <= 0) {
                 env.nextDay();
-                series.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
+                blobSeries.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
+                avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
                 updateStats();
             }
         }
@@ -189,7 +232,8 @@ public class GameApp extends Application {
                 env.nextDay();
                 updateStats();
 
-                series.getData().add(new XYChart.Data<Number, Number>(env.DAYS, env.BLOBS));
+                blobSeries.getData().add(new XYChart.Data<>(env.DAYS, env.BLOBS));
+                avgSpeedSeries.getData().add(new XYChart.Data<>(env.DAYS, env.getAverageSpeed()));
 
                 //timeline.pause();
             }
