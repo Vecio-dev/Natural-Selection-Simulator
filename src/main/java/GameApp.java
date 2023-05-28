@@ -1,12 +1,8 @@
-import java.util.Map;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -47,7 +43,7 @@ public class GameApp extends Application {
         VBox mainLayout = new VBox();
         BorderPane root = new BorderPane();
         HBox centerBox = new HBox();
-        env = new Environment(0, 0, false);
+        env = new Environment(0, 0, false, 0, 50, 12, 100, 1, 1, false);
 
         // SIMULATION BUTTONS
         Button startSimulationButton = new Button("Start");
@@ -81,58 +77,89 @@ public class GameApp extends Application {
         Button generateSimulationButton = new Button("Generate");
         generateSimulationButton.setAlignment(Pos.CENTER);
         
-        Label blobsNumberLabel = new Label("Blobs N: ");
+        Label blobsNumberLabel = new Label("Blobs: ");
         TextField blobsNumberTextField = new TextField("0");
         HBox blobsBox = new HBox(blobsNumberLabel, blobsNumberTextField);
         
-        Label foodNumberLabel = new Label("Food N: ");
+        Label foodNumberLabel = new Label("Food: ");
         TextField foodNumberTextField = new TextField("0");
         HBox foodBox = new HBox(foodNumberLabel, foodNumberTextField);
 
-        Label defaultEnergyLabel = new Label("Default energy: ");
-        TextField defaultEnergyTextField = new TextField("0");
-        HBox energyBox = new HBox(defaultEnergyLabel, defaultEnergyTextField);
-
-        Label daysLabel = new Label("Days N: ");
-        TextField daysTextField = new TextField("0");
-        HBox daysBox = new HBox(daysLabel, daysTextField);
-
         Label gridSizeLabel = new Label("Grid Size: ");
-        TextField gridSizeTextField = new TextField("0");
+        TextField gridSizeTextField = new TextField("50");
         HBox gridSizeBox = new HBox(gridSizeLabel, gridSizeTextField);
 
         Label squareSizeLabel = new Label("Square Size: ");
-        TextField squareSizeTextField = new TextField("0");
+        TextField squareSizeTextField = new TextField("12");
         HBox squareSizeBox = new HBox(squareSizeLabel, squareSizeTextField);
 
-        Label stepsNumberLabel = new Label("Steps N: ");
-        TextField stepNumberTextField = new TextField("0");
+        Label stepsNumberLabel = new Label("Steps: ");
+        TextField stepNumberTextField = new TextField("100");
         HBox stepNumberBox = new HBox(stepsNumberLabel, stepNumberTextField);
 
-        VBox environmentSettings = new VBox(gridSizeBox, squareSizeBox, blobsBox, foodBox, daysBox, stepNumberBox);
-        
+        VBox environmentSettings = new VBox(gridSizeBox, squareSizeBox, blobsBox, foodBox, stepNumberBox);
+        environmentSettings.setSpacing(5);
+
         TitledPane environmentDropDown = new TitledPane();
         environmentDropDown.setText("Environment");
         environmentDropDown.setContent(environmentSettings);
         
-        Label traitsLabel = new Label("Traits:");
         Label speedLabel = new Label("Speed: ");
         CheckBox speedCheckbox = new CheckBox();
         HBox speedBox = new HBox(speedLabel, speedCheckbox);
 
-        VBox blobSettings = new VBox(traitsLabel, speedBox, energyBox);
+        Label sizeLabel = new Label("Size: ");
+        CheckBox sizeCheckbox = new CheckBox();
+        HBox sizeBox = new HBox(sizeLabel, sizeCheckbox);
+
+        Label defaultEnergyLabel = new Label("Default energy: ");
+        TextField defaultEnergyTextField = new TextField("1000");
+        HBox energyBox = new HBox(defaultEnergyLabel, defaultEnergyTextField);
+
+        Label defaultSpeedLabel = new Label("Default Speed: ");
+        TextField defaultSpeedTextField = new TextField("1");
+        HBox defaultSpeedBox = new HBox(defaultSpeedLabel, defaultSpeedTextField);
+
+        Label defaultSizeLabel = new Label("Default Size: ");
+        TextField defaultSizeTextField = new TextField("1");
+        HBox defaultSizeBox = new HBox(defaultSizeLabel, defaultSizeTextField);
+
+        VBox blobSettings = new VBox(speedBox, sizeBox, energyBox, defaultSpeedBox, defaultSizeBox);
         blobSettings.setSpacing(5);
         TitledPane blobsDropDown = new TitledPane();
         blobsDropDown.setText("Blobs");
         blobsDropDown.setContent(blobSettings);
+
+        Label foodStepLabel = new Label("Food Step: ");
+        CheckBox foodStepCheckbox = new CheckBox();
+        HBox foodStepBox = new HBox(foodStepLabel, foodStepCheckbox);
+
+        Label foodStepNumLabel = new Label("Food Step N: ");
+        TextField foodStepNumTextField = new TextField("0");
+        HBox foodStepNumBox = new HBox(foodStepNumLabel, foodStepNumTextField);
+
+        Label minFoodStepNumLabel = new Label("Min Food: ");
+        TextField minFoodStepNumTextField = new TextField("0");
+        HBox minFoodStepNumBox = new HBox(minFoodStepNumLabel, minFoodStepNumTextField);
+
+        Button foodStepButton = new Button("Update");
+        foodStepButton.setAlignment(Pos.CENTER);
+        foodStepButton.setOnAction(event -> updateEnvironment(foodStepCheckbox, foodStepNumTextField, minFoodStepNumTextField));
+
+        VBox liveSettings = new VBox(foodStepBox, foodStepNumBox, minFoodStepNumBox, foodStepButton);
+        liveSettings.setSpacing(5);
+
+        TitledPane liveDropDown = new TitledPane();
+        liveDropDown.setText("Live");
+        liveDropDown.setContent(liveSettings);
         
-        VBox settingsBox = new VBox(generateSimulationButton, environmentDropDown, blobsDropDown);
+        VBox settingsBox = new VBox(generateSimulationButton, environmentDropDown, blobsDropDown, liveDropDown);
         settingsBox.setSpacing(10);
 
         centerBox.setSpacing(20);
         centerBox.getChildren().addAll(env, settingsBox);
 
-        generateSimulationButton.setOnAction(event -> generateEnvironment(root, centerBox, settingsBox, blobsNumberTextField, foodNumberTextField, speedCheckbox));
+        generateSimulationButton.setOnAction(event -> generateEnvironment(root, centerBox, settingsBox, blobsNumberTextField, foodNumberTextField, speedCheckbox, defaultEnergyTextField, gridSizeTextField, squareSizeTextField, stepNumberTextField, defaultSpeedTextField, defaultSizeTextField, sizeCheckbox));
 
         // CHARTS
         VBox graphsBox = new VBox();
@@ -152,6 +179,14 @@ public class GameApp extends Application {
         primaryStage.setTitle("Simulator");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void updateEnvironment(CheckBox foodStepCheckbox, TextField foodStepNumTextField, TextField minFoodStepNumTextField) {
+        boolean foodStepEnabled = foodStepCheckbox.isSelected();
+        int foodStepNum = Integer.parseInt(foodStepNumTextField.getText());
+        int minFood = Integer.parseInt(minFoodStepNumTextField.getText());
+        
+        env.updateEnvironment(foodStepEnabled, foodStepNum, minFood);
     }
 
     private void generateCharts(VBox graphsBox) {
@@ -208,12 +243,19 @@ public class GameApp extends Application {
         graphsBox.getChildren().addAll(firstLine, secondLine);
     }    
 
-    private void generateEnvironment(BorderPane root, HBox centerbox, VBox settingsBox, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox) {
+    private void generateEnvironment(BorderPane root, HBox centerbox, VBox settingsBox, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox, TextField defaultEnergyTextField, TextField gridSizeTextField, TextField squareSizeTextField, TextField stepNumberTextField, TextField defaultSpeedTextField, TextField defaultSizeTextField, CheckBox sizeCheckBox) {
         int blobsNumber = Integer.parseInt(blobsNumberTextField.getText());
         int foodNumber = Integer.parseInt(foodNumberTextField.getText());
         boolean speedEnabled = speedCheckbox.isSelected();
+        int defaultEnergy = Integer.parseInt(defaultEnergyTextField.getText());
+        int gridSize = Integer.parseInt(gridSizeTextField.getText());
+        int squareSize = Integer.parseInt(squareSizeTextField.getText());
+        int stepNumber = Integer.parseInt(stepNumberTextField.getText());
+        int defaultSpeed = Integer.parseInt(defaultSpeedTextField.getText());
+        float defaultSize = Float.parseFloat(defaultSizeTextField.getText());
+        boolean sizeEnabled = sizeCheckBox.isSelected();
 
-        env = new Environment(blobsNumber, foodNumber, speedEnabled);
+        env = new Environment(blobsNumber, foodNumber, speedEnabled, defaultEnergy, gridSize, squareSize, stepNumber, defaultSpeed, defaultSize, sizeEnabled);
 
         centerbox.getChildren().clear();
         centerbox.getChildren().addAll(env, settingsBox);

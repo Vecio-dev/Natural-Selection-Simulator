@@ -30,10 +30,15 @@ public class Environment extends GridPane {
     private LinkedList<Blob> blobs;
     private LinkedList<Blob> blobsToRemove;
 
-    public Environment(int blobsNumber, int foodNumber, boolean speedEnabled) {
+    public Environment(int blobsNumber, int foodNumber, boolean speedEnabled, int defaultEnergy, int days, int gridSize, int squareSize, int stepNumber) {
         BLOBS = blobsNumber;
         FOOD = foodNumber;
         this.speedEnabled = speedEnabled;
+        DEFAULT_ENERGY = defaultEnergy;
+        DAYS = days;
+        GRID_SIZE = gridSize;
+        SQUARE_SIZE = squareSize;
+        MAX_STEPS = stepNumber;
         blobs = new LinkedList<>();
         blobsToRemove = new LinkedList<>();
         createEnvironment();
