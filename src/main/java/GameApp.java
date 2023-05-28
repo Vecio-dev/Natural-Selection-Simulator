@@ -119,7 +119,7 @@ public class GameApp extends Application {
         blobsDropDown.setText("Blobs");
         blobsDropDown.setContent(blobSettings);
         
-        generateSimulationButton.setOnAction(event -> generateEnvironment(root, blobsNumberTextField, foodNumberTextField, speedCheckbox));
+        generateSimulationButton.setOnAction(event -> generateEnvironment(root, blobsNumberTextField, foodNumberTextField, speedCheckbox, defaultEnergyTextField, daysTextField, gridSizeTextField, squareSizeTextField, stepNumberTextField));
         VBox settingsBox = new VBox(generateSimulationButton, environmentDropDown, blobsDropDown);
         settingsBox.setSpacing(10);
 
@@ -182,12 +182,17 @@ public class GameApp extends Application {
         graphsBox.getChildren().add(firstLine);
     }    
 
-    private void generateEnvironment(BorderPane root, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox) {
+    private void generateEnvironment(BorderPane root, TextField blobsNumberTextField, TextField foodNumberTextField, CheckBox speedCheckbox, TextField defaultEnergyTextField, TextField daysTextField, TextField gridSizeTextField, TextField squareSizeTextField, TextField stepNumberTextField) {
         int blobsNumber = Integer.parseInt(blobsNumberTextField.getText());
         int foodNumber = Integer.parseInt(foodNumberTextField.getText());
         boolean speedEnabled = speedCheckbox.isSelected();
+        int defaultEnergy = Integer.parseInt(defaultEnergyTextField.getText());
+        int days = Integer.parseInt(daysTextField.getText());
+        int gridSize = Integer.parseInt(gridSizeTextField.getText());
+        int squareSize = Integer.parseInt(squareSizeTextField.getText());
+        int stepNumber = Integer.parseInt(stepNumberTextField.getText());
 
-        env = new Environment(blobsNumber, foodNumber, speedEnabled);
+        env = new Environment(blobsNumber, foodNumber, speedEnabled, defaultEnergy, days, gridSize, squareSize, stepNumber);
         root.setLeft(env);
         updateStats();
 
