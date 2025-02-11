@@ -8,7 +8,7 @@ Natural selection is a fundamental concept in evolutionary biology, first propos
 # Simulator
 The "Natural Selection Simulator" project is designed based on the principles of the natural selection theory.
 
-![](https://cdn.discordapp.com/attachments/717442721303887963/1184462835191922719/image.png?ex=658c0ffa&is=65799afa&hm=76f16bf31ce19e51b09142d26c1a0033bfb76f1a48a71debd746b59721b05ac5&)
+![](img/env.png)
 
 The program can simulate the natural selection in a defined environment (represented by the grid) of a specific species (called Blobs) with different traits (speed and size).
 
@@ -19,7 +19,7 @@ The environment can be generated from the right panel with the defined options.
 # Implementation and Rules
 It is generated a specific environment with defined size, number of starting blobs and number of food for each day. Each day the blobs (which can have different colors depending on the traits properties, by default their color is orange) are placed evenly at the borders of the grid (environment) and the food (color green) is placed randomly in the environment
 
-![](https://cdn.discordapp.com/attachments/717442721303887963/1184466470344855602/image.png?ex=658c135c&is=65799e5c&hm=f19cce129213f1b55f07465eeda64473cb545ca6857a16eae8fd2352ce324f34&)
+![](img/env2.png)
 
 The simulation time is measured in steps, by default a day is made of 100 steps.
 When the simulation is started, each step a blob moves randomly by a defined number of squares (depending on the speed trait, by default 1 square a step). If a blob lands on a square with food, the blob eats the food. 
@@ -91,7 +91,7 @@ The buttons at the top of the windows control the simulation:
 # Graphs
 At the bottom of the program 3 graphs can be viewed (updated in real time with the simulation):
 
-![](https://cdn.discordapp.com/attachments/717442721303887963/1184477949995528222/image.png?ex=658c1e0d&is=6579a90d&hm=bc5b8985d09f5c8cdc324a3bac08a067ff50e7423a7958ddf88c92bb2cf115cf&)
+![](img/graphs.png)
 
 - The first graph defines the number of blobs each day
 - The second graph defines the average speed each day
